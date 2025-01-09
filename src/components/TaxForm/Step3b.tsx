@@ -24,7 +24,7 @@ const Step3b: React.FC<Step3bProps> = ({ onNext, onPrevious, formData, updateFor
   const [hasPaymentPlan, setHasPaymentPlan] = useState<string>(formData?.hasPaymentPlan || '');
   const [monthlyPayment, setMonthlyPayment] = useState<string>(formData?.monthlyPayment || '');
   const [showDebtWarning, setShowDebtWarning] = useState<boolean>(false);
-  const [showPaymentWarning, setShowPaymentWarning] = useState<boolean>(false);
+  const [showMonthlyPaymentWarning, setShowMonthlyPaymentWarning] = useState<boolean>(false);
 
   const showStateWarning = taxType === 'state';
   const showBothWarning = taxType === 'both';
@@ -48,14 +48,16 @@ const Step3b: React.FC<Step3bProps> = ({ onNext, onPrevious, formData, updateFor
   };
 
   const handleMonthlyPaymentBlur = () => {
-    if (hasPaymentPlan === 'yes' && Number(monthlyPayment) > 0) {
-      setShowPaymentWarning(Number(monthlyPayment) > Number(debtAmount) * 0.015);
+    if (hasPaymentPlan === 'yes') {
+      setShowMonthlyPaymentWarning(
+        Number(monthlyPayment) > 0 && Number(monthlyPayment) <= 300
+      );
     }
   };
 
   const handleMonthlyPaymentChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setMonthlyPayment(e.target.value);
-    setShowPaymentWarning(false);
+    setShowMonthlyPaymentWarning(false);
   };
 
   const isFormValid = 
@@ -65,7 +67,10 @@ const Step3b: React.FC<Step3bProps> = ({ onNext, onPrevious, formData, updateFor
     debtAmount && 
     Number(debtAmount) >= 5000 &&
     hasPaymentPlan && 
-    (hasPaymentPlan === 'no' || monthlyPayment) &&
+    (hasPaymentPlan === 'no' || (
+      monthlyPayment && 
+      (Number(monthlyPayment) === 0 || Number(monthlyPayment) > 300)
+    )) &&
     taxType !== 'state';
 
   const handleNext = () => {
@@ -234,7 +239,7 @@ const Step3b: React.FC<Step3bProps> = ({ onNext, onPrevious, formData, updateFor
                 />
               </div>
 
-              {showPaymentWarning && (
+              {showMonthlyPaymentWarning && (
                 <div className="p-4 bg-red-50 border border-red-200 rounded-lg flex gap-3">
                   <AlertTriangle className="w-5 h-5 text-red-800 flex-shrink-0 mt-0.5" />
                   <p className="text-red-800">We do not take on clients who are on a current payment plan with the IRS for that amount</p>
